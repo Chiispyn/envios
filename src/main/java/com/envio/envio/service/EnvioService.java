@@ -1,5 +1,6 @@
 package com.envio.envio.service;
 
+import com.envio.envio.integration.ChilexpressApiService; // Importamos el servicio de Chilexpress
 import com.envio.envio.model.Envio;
 import com.envio.envio.model.Estado;
 import com.envio.envio.model.Producto;
@@ -20,6 +21,9 @@ public class EnvioService {
     @Autowired
     private ProductoRepository productoRepository;
 
+    @Autowired
+    private ChilexpressApiService chilexpressApiService; // Inyectamos el servicio de Chilexpress
+
     public List<Envio> listarEnvios() {
         return envioRepository.findAll();
     }
@@ -29,22 +33,31 @@ public class EnvioService {
     }
 
     public Envio guardarEnvio(Envio envio) {
-        return envioRepository.save(envio);
+        Envio nuevoEnvio = envioRepository.save(envio);
+        chilexpressApiService.notificarNuevoEnvio(nuevoEnvio.getIdEnvio()); // Notificamos a Chilexpress
+        return nuevoEnvio;
     }
 
     public Envio actualizarEnvio(Integer id, Envio envio) {
         return envioRepository.findById(id)
                 .map(existingEnvio -> {
+                    Estado estadoAnterior = existingEnvio.getEstadoPedido();
                     if (envio.getFechaEnvio() != null) existingEnvio.setFechaEnvio(envio.getFechaEnvio());
                     if (envio.getEstadoPedido() != null) existingEnvio.setEstadoPedido(envio.getEstadoPedido());
                     if (envio.getIdCliente() != null) existingEnvio.setIdCliente(envio.getIdCliente());
                     if (envio.getProductos() != null) existingEnvio.setProductos(envio.getProductos());
-                    return envioRepository.save(existingEnvio);
+                    Envio envioActualizado = envioRepository.save(existingEnvio);
+                    if (envio.getEstadoPedido() != null && !envio.getEstadoPedido().equals(estadoAnterior)) {
+                        chilexpressApiService.actualizarEstadoEnvio(envioActualizado.getIdEnvio(), envioActualizado.getEstadoPedido().toString());
+                    }
+                    return envioActualizado;
                 })
                 .orElse(null);
     }
 
     public void eliminarEnvio(Integer id) {
+        Optional<Envio> envioOptional = envioRepository.findById(id);
+        envioOptional.ifPresent(envio -> chilexpressApiService.cancelarEnvio(envio.getIdEnvio())); // Cancelamos en Chilexpress
         envioRepository.deleteById(id);
     }
 
@@ -64,8 +77,13 @@ public class EnvioService {
     public Envio cambiarEstado(Integer idEnvio, Estado nuevoEstado) {
         return envioRepository.findById(idEnvio)
                 .map(envio -> {
+                    Estado estadoAnterior = envio.getEstadoPedido();
                     envio.setEstadoPedido(nuevoEstado);
-                    return envioRepository.save(envio);
+                    Envio envioActualizado = envioRepository.save(envio);
+                    if (!nuevoEstado.equals(estadoAnterior)) {
+                        chilexpressApiService.actualizarEstadoEnvio(envioActualizado.getIdEnvio(), nuevoEstado.toString());
+                    }
+                    return envioActualizado;
                 })
                 .orElse(null);
     }
@@ -83,7 +101,7 @@ public class EnvioService {
         return null;
     }
 
-     public List<Producto> obtenerProductosDelEnvio(Integer idEnvio) {
+    public List<Producto> obtenerProductosDelEnvio(Integer idEnvio) {
         Optional<Envio> envioOptional = envioRepository.findById(idEnvio);
         return envioOptional.map(envio -> new ArrayList<>(envio.getProductos()))
                              .orElse(new ArrayList<>());
