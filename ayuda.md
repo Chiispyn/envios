@@ -11,7 +11,7 @@ INSERT INTO producto (nombre, precio) VALUES ('Plato de madera de lenga', 35.00)
 INSERT INTO producto (nombre, precio) VALUES ('Semillas orgánicas para huerto en casa (pack)', 15.00);
 
 ## Crear un nuevo envío (POST)
-## http://localhost:8080/api/envios
+## http://localhost:8083/api/envios
 {
   "fechaEnvio": "2025-05-16T11:00:00.000+00:00",
   "estadoPedido": "PENDIENTE",
@@ -19,23 +19,23 @@ INSERT INTO producto (nombre, precio) VALUES ('Semillas orgánicas para huerto e
 }
 
 ## Obtener el envío creado (GET por ID)
-## http://localhost:8080/api/envios/{idEnvio} por ejemplo 1
+## http://localhost:8083/api/envios/{idEnvio} por ejemplo 1
 
-## http://localhost:8080/api/envios/{idEnvio}
-## http://localhost:8080/api/envios/{idEnvio}/productos/1 (reemplaza {idEnvio} con tu ID)
+## http://localhost:8083/api/envios/{idEnvio}
+## http://localhost:8083/api/envios/{idEnvio}/productos/1 (reemplaza {idEnvio} con tu ID)
 
 ## Obtener los productos del envío (GET)
-## http://localhost:8080/api/envios/{idEnvio}/productos (e.g., http://localhost:8080/api/envios/3/productos).
+## http://localhost:8083/api/envios/{idEnvio}/productos (e.g., http://localhost:8080/api/envios/3/productos).
 
 ## Actualizar el estado del envío (PUT)
-## http://localhost:8080/api/envios/4
+## http://localhost:8083/api/envios/4
 ## Pega el siguiente JSON para cambiar el estado:
 {
   "estadoPedido": "EN_CAMINO"
 }
 
 ##  Eliminar un producto del envío (DELETE)
-## http://localhost:8080/api/envios/3/productos/3
+## http://localhost:8083/api/envios/3/productos/3
 
 ## Eliminar el envío (DELETE)
-## http://localhost:8080/api/envios/3
+## http://localhost:8083/api/envios/3
