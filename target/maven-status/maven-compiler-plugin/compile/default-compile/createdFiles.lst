@@ -1,0 +1,9 @@
+com\envio\envio\model\Envio.class
+com\envio\envio\model\Producto.class
+com\envio\envio\integration\ChilexpressApiService.class
+com\envio\envio\repository\ProductoRepository.class
+com\envio\envio\service\EnvioService.class
+com\envio\envio\model\Estado.class
+com\envio\envio\controller\EnvioController.class
+com\envio\envio\EnvioApplication.class
+com\envio\envio\repository\EnvioRepository.class
