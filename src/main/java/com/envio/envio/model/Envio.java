@@ -13,7 +13,7 @@ import java.util.Set;
 public class Envio {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long idEnvio;
+    private Integer idEnvio;
 
     @Enumerated(EnumType.STRING)
     private Estado estadoPedido;

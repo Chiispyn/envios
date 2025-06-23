@@ -69,7 +69,7 @@ class EnvioControllerTest {
 
         // Envios
         envio1 = new Envio();
-        envio1.setIdEnvio(1L);
+        envio1.setIdEnvio(1);
         envio1.setEstadoPedido(Estado.PENDIENTE);
         envio1.setIdCliente(101);
         envio1.setFechaEnvio(new Date());
@@ -79,7 +79,7 @@ class EnvioControllerTest {
         envio1.setProductos(productosEnvio1);
 
         envio2 = new Envio();
-        envio2.setIdEnvio(2L);
+        envio2.setIdEnvio(2);
         envio2.setEstadoPedido(Estado.EN_CAMINO);
         envio2.setIdCliente(102);
         envio2.setFechaEnvio(new Date(System.currentTimeMillis() + 86400000));
@@ -148,7 +148,7 @@ class EnvioControllerTest {
         nuevoEnvio.setProductos(new HashSet<>(Arrays.asList(p1)));
 
         Envio savedEnvio = new Envio();
-        savedEnvio.setIdEnvio(3L);
+        savedEnvio.setIdEnvio(3);
         savedEnvio.setEstadoPedido(Estado.PENDIENTE);
         savedEnvio.setIdCliente(103);
         savedEnvio.setFechaEnvio(nuevoEnvio.getFechaEnvio());
@@ -178,7 +178,7 @@ class EnvioControllerTest {
         updatedInfo.setIdCliente(envio1.getIdCliente());
 
         Envio existingEnvioUpdated = new Envio();
-        existingEnvioUpdated.setIdEnvio(1L);
+        existingEnvioUpdated.setIdEnvio(1);
         existingEnvioUpdated.setEstadoPedido(Estado.ENTREGADO);
         existingEnvioUpdated.setIdCliente(envio1.getIdCliente());
         existingEnvioUpdated.setFechaEnvio(updatedInfo.getFechaEnvio());
@@ -192,6 +192,7 @@ class EnvioControllerTest {
                         .accept(MediaTypes.HAL_JSON_VALUE))
                 .andExpect(status().isOk())
                 .andExpect(content().contentType(MediaTypes.HAL_JSON_VALUE))
+                // Los campos de la entidad están en la raíz, los enlaces también
                 .andExpect(jsonPath("$.idEnvio", is(existingEnvioUpdated.getIdEnvio())))
                 .andExpect(jsonPath("$.estadoPedido", is(Estado.ENTREGADO.toString())))
                 .andExpect(jsonPath("$._links.self.href", containsString("/api/v1/envios/1")));
@@ -225,7 +226,7 @@ class EnvioControllerTest {
     @Test
     void agregarProductoAlEnvio_debeAgregarProductoYRetornarEnvioConHATEOAS() throws Exception {
         Envio envioAfterAddition = new Envio();
-        envioAfterAddition.setIdEnvio(1L);
+        envioAfterAddition.setIdEnvio(1);
         envioAfterAddition.setEstadoPedido(Estado.PENDIENTE);
         envioAfterAddition.setIdCliente(envio1.getIdCliente());
         envioAfterAddition.setFechaEnvio(envio1.getFechaEnvio());
@@ -252,7 +253,7 @@ class EnvioControllerTest {
     @Test
     void cambiarEstadoDelEnvio_debeCambiarEstadoYRetornarEnvioConHATEOAS() throws Exception {
         Envio updatedEnvio = new Envio();
-        updatedEnvio.setIdEnvio(1L);
+        updatedEnvio.setIdEnvio(1);
         updatedEnvio.setEstadoPedido(Estado.ENTREGADO);
         updatedEnvio.setIdCliente(envio1.getIdCliente());
         updatedEnvio.setFechaEnvio(envio1.getFechaEnvio());
@@ -280,7 +281,7 @@ class EnvioControllerTest {
     @Test
     void eliminarProductoDelEnvio_debeEliminarProductoYRetornarEnvioConHATEOAS() throws Exception {
         Envio envioAfterRemoval = new Envio();
-        envioAfterRemoval.setIdEnvio(1L);
+        envioAfterRemoval.setIdEnvio(1);
         envioAfterRemoval.setEstadoPedido(Estado.PENDIENTE);
         envioAfterRemoval.setIdCliente(envio1.getIdCliente());
         envioAfterRemoval.setFechaEnvio(envio1.getFechaEnvio());
