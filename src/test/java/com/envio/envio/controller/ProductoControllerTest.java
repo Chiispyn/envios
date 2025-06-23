@@ -62,17 +62,17 @@ class ProductoControllerTest {
         when(productoService.listarProductos()).thenReturn(Arrays.asList(producto1, producto2));
 
         // When & Then
-        mockMvc.perform(get("/api/productos")
+        mockMvc.perform(get("/api/v1/productos")
                         .accept(MediaTypes.HAL_JSON_VALUE))
                 .andExpect(status().isOk())
                 .andExpect(content().contentType(MediaTypes.HAL_JSON_VALUE))
                 .andExpect(jsonPath("$._embedded.productoList", hasSize(2)))
                 .andExpect(jsonPath("$._embedded.productoList[0].idProducto", is(producto1.getIdProducto())))
-                .andExpect(jsonPath("$._embedded.productoList[0]._links.self.href", containsString("/api/productos/" + producto1.getIdProducto())))
+                .andExpect(jsonPath("$._embedded.productoList[0]._links.self.href", containsString("/api/v1/productos/" + producto1.getIdProducto())))
                 .andExpect(jsonPath("$._embedded.productoList[1].idProducto", is(producto2.getIdProducto())))
-                .andExpect(jsonPath("$._embedded.productoList[1]._links.self.href", containsString("/api/productos/" + producto2.getIdProducto())))
-                .andExpect(jsonPath("$._links.self.href", containsString("/api/productos")))
-                .andExpect(jsonPath("$._links.crear-producto.href", containsString("/api/productos")));
+                .andExpect(jsonPath("$._embedded.productoList[1]._links.self.href", containsString("/api/v1/productos/" + producto2.getIdProducto())))
+                .andExpect(jsonPath("$._links.self.href", containsString("/api/v1/productos")))
+                .andExpect(jsonPath("$._links.crear-producto.href", containsString("/api/v1/productos")));
         verify(productoService, times(1)).listarProductos();
     }
 
@@ -82,14 +82,14 @@ class ProductoControllerTest {
         when(productoService.obtenerProductoPorId(1)).thenReturn(Optional.of(producto1));
 
         // When & Then
-        mockMvc.perform(get("/api/productos/{id}", 1)
+        mockMvc.perform(get("/api/v1/productos/{id}", 1)
                         .accept(MediaTypes.HAL_JSON_VALUE))
                 .andExpect(status().isOk())
                 .andExpect(content().contentType(MediaTypes.HAL_JSON_VALUE))
                 .andExpect(jsonPath("$.idProducto", is(producto1.getIdProducto())))
                 .andExpect(jsonPath("$.nombre", is(producto1.getNombre())))
-                .andExpect(jsonPath("$._links.self.href", containsString("/api/productos/1")))
-                .andExpect(jsonPath("$._links.productos.href", containsString("/api/productos")));
+                .andExpect(jsonPath("$._links.self.href", containsString("/api/v1/productos/1")))
+                .andExpect(jsonPath("$._links.productos.href", containsString("/api/v1/productos")));
         verify(productoService, times(1)).obtenerProductoPorId(1);
     }
 
@@ -99,7 +99,7 @@ class ProductoControllerTest {
         when(productoService.obtenerProductoPorId(99)).thenReturn(Optional.empty());
 
         // When & Then
-        mockMvc.perform(get("/api/productos/{id}", 99)
+        mockMvc.perform(get("/api/v1/productos/{id}", 99)
                         .accept(MediaTypes.HAL_JSON_VALUE))
                 .andExpect(status().isNotFound());
         verify(productoService, times(1)).obtenerProductoPorId(99);
@@ -120,7 +120,7 @@ class ProductoControllerTest {
         when(productoService.guardarProducto(any(Producto.class))).thenReturn(savedProducto);
 
         // When & Then
-        mockMvc.perform(post("/api/productos")
+        mockMvc.perform(post("/api/v1/productos")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(nuevoProducto))
                         .accept(MediaTypes.HAL_JSON_VALUE))
@@ -128,8 +128,8 @@ class ProductoControllerTest {
                 .andExpect(content().contentType(MediaTypes.HAL_JSON_VALUE))
                 .andExpect(jsonPath("$.idProducto", is(savedProducto.getIdProducto())))
                 .andExpect(jsonPath("$.nombre", is(savedProducto.getNombre())))
-                .andExpect(jsonPath("$._links.self.href", containsString("/api/productos/3")))
-                .andExpect(jsonPath("$._links.productos.href", containsString("/api/productos")));
+                .andExpect(jsonPath("$._links.self.href", containsString("/api/v1/productos/3")))
+                .andExpect(jsonPath("$._links.productos.href", containsString("/api/v1/productos")));
         verify(productoService, times(1)).guardarProducto(any(Producto.class));
     }
 
@@ -137,7 +137,7 @@ class ProductoControllerTest {
     void actualizarProducto_debeActualizarProductoYRetornarConHATEOAS() throws Exception {
         // Given
         Producto updatedInfo = new Producto();
-        updatedInfo.setNombre("Plato de madera de roble"); // Actualizamos el nombre de producto1
+        updatedInfo.setNombre("Plato de madera de roble"); 
         updatedInfo.setPrecio(4000.0);
 
         Producto existingProductUpdated = new Producto();
@@ -148,7 +148,7 @@ class ProductoControllerTest {
         when(productoService.actualizarProducto(eq(1), any(Producto.class))).thenReturn(existingProductUpdated);
 
         // When & Then
-        mockMvc.perform(put("/api/productos/{id}", 1)
+        mockMvc.perform(put("/api/v1/productos/{id}", 1)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(updatedInfo))
                         .accept(MediaTypes.HAL_JSON_VALUE))
@@ -156,7 +156,7 @@ class ProductoControllerTest {
                 .andExpect(content().contentType(MediaTypes.HAL_JSON_VALUE))
                 .andExpect(jsonPath("$.idProducto", is(existingProductUpdated.getIdProducto())))
                 .andExpect(jsonPath("$.nombre", is(existingProductUpdated.getNombre())))
-                .andExpect(jsonPath("$._links.self.href", containsString("/api/productos/1")));
+                .andExpect(jsonPath("$._links.self.href", containsString("/api/v1/productos/1")));
         verify(productoService, times(1)).actualizarProducto(eq(1), any(Producto.class));
     }
 
@@ -169,7 +169,7 @@ class ProductoControllerTest {
         when(productoService.actualizarProducto(eq(99), any(Producto.class))).thenReturn(null);
 
         // When & Then
-        mockMvc.perform(put("/api/productos/{id}", 99)
+        mockMvc.perform(put("/api/v1/productos/{id}", 99)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(updatedInfo))
                         .accept(MediaTypes.HAL_JSON_VALUE))
@@ -183,7 +183,7 @@ class ProductoControllerTest {
         doNothing().when(productoService).eliminarProducto(1);
 
         // When & Then
-        mockMvc.perform(delete("/api/productos/{id}", 1))
+        mockMvc.perform(delete("/api/v1/productos/{id}", 1))
                 .andExpect(status().isNoContent());
         verify(productoService, times(1)).eliminarProducto(1);
     }

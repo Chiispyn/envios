@@ -92,19 +92,19 @@ class EnvioControllerTest {
     void obtenerTodosLosEnvios_debeRetornarListaConHATEOAS() throws Exception {
         when(envioService.listarEnvios()).thenReturn(Arrays.asList(envio1, envio2));
 
-        mockMvc.perform(get("/api/envios")
+        mockMvc.perform(get("/api/v1/envios")
                         .accept(MediaTypes.HAL_JSON_VALUE))
                 .andExpect(status().isOk())
                 .andExpect(content().contentType(MediaTypes.HAL_JSON_VALUE))
                 // La colección de envíos ahora está dentro de "_embedded.envioList"
                 .andExpect(jsonPath("$._embedded.envioList", hasSize(2)))
                 .andExpect(jsonPath("$._embedded.envioList[0].idEnvio", is(envio1.getIdEnvio())))
-                .andExpect(jsonPath("$._embedded.envioList[0]._links.self.href", containsString("/api/envios/" + envio1.getIdEnvio())))
+                .andExpect(jsonPath("$._embedded.envioList[0]._links.self.href", containsString("/api/v1/envios/" + envio1.getIdEnvio())))
                 .andExpect(jsonPath("$._embedded.envioList[1].idEnvio", is(envio2.getIdEnvio())))
-                .andExpect(jsonPath("$._embedded.envioList[1]._links.self.href", containsString("/api/envios/" + envio2.getIdEnvio())))
+                .andExpect(jsonPath("$._embedded.envioList[1]._links.self.href", containsString("/api/v1/envios/" + envio2.getIdEnvio())))
                 // Los enlaces de la colección global permanecen igual
-                .andExpect(jsonPath("$._links.self.href", containsString("/api/envios")))
-                .andExpect(jsonPath("$._links.crear-envio.href", containsString("/api/envios")));
+                .andExpect(jsonPath("$._links.self.href", containsString("/api/v1/envios")))
+                .andExpect(jsonPath("$._links.crear-envio.href", containsString("/api/v1/envios")));
         verify(envioService, times(1)).listarEnvios();
     }
 
@@ -112,7 +112,7 @@ class EnvioControllerTest {
     void obtenerEnvio_debeRetornarEnvioConHATEOASCuandoExiste() throws Exception {
         when(envioService.obtenerEnvioPorId(1)).thenReturn(Optional.of(envio1));
 
-        mockMvc.perform(get("/api/envios/{id}", 1)
+        mockMvc.perform(get("/api/v1/envios/{id}", 1)
                         .accept(MediaTypes.HAL_JSON_VALUE))
                 .andExpect(status().isOk())
                 .andExpect(content().contentType(MediaTypes.HAL_JSON_VALUE))
@@ -120,13 +120,13 @@ class EnvioControllerTest {
                 .andExpect(jsonPath("$.idEnvio", is(envio1.getIdEnvio())))
                 .andExpect(jsonPath("$.estadoPedido", is(envio1.getEstadoPedido().toString())))
                 // Los enlaces también están en la raíz bajo "_links"
-                .andExpect(jsonPath("$._links.self.href", containsString("/api/envios/1")))
-                .andExpect(jsonPath("$._links.envios.href", containsString("/api/envios")))
-                .andExpect(jsonPath("$._links.marcar-entregado.href", containsString("/api/envios/1/estado")))
-                .andExpect(jsonPath("$._links.cancelar.href", containsString("/api/envios/1/estado")))
-                .andExpect(jsonPath("$._links.agregar-producto.href", containsString("/api/envios/1/productos/")))
-                .andExpect(jsonPath("$._links.eliminar-producto.href", containsString("/api/envios/1/productos/")))
-                .andExpect(jsonPath("$._links.productos-del-envio.href", containsString("/api/envios/1/productos")));
+                .andExpect(jsonPath("$._links.self.href", containsString("/api/v1/envios/1")))
+                .andExpect(jsonPath("$._links.envios.href", containsString("/api/v1/envios")))
+                .andExpect(jsonPath("$._links.marcar-entregado.href", containsString("/api/v1/envios/1/estado")))
+                .andExpect(jsonPath("$._links.cancelar.href", containsString("/api/v1/envios/1/estado")))
+                .andExpect(jsonPath("$._links.agregar-producto.href", containsString("/api/v1/envios/1/productos/")))
+                .andExpect(jsonPath("$._links.eliminar-producto.href", containsString("/api/v1/envios/1/productos/")))
+                .andExpect(jsonPath("$._links.productos-del-envio.href", containsString("/api/v1/envios/1/productos")));
 
         verify(envioService, times(1)).obtenerEnvioPorId(1);
     }
@@ -135,7 +135,7 @@ class EnvioControllerTest {
     void obtenerEnvio_debeRetornarNotFoundCuandoNoExiste() throws Exception {
         when(envioService.obtenerEnvioPorId(99)).thenReturn(Optional.empty());
 
-        mockMvc.perform(get("/api/envios/{id}", 99)
+        mockMvc.perform(get("/api/v1/envios/{id}", 99)
                         .accept(MediaTypes.HAL_JSON_VALUE))
                 .andExpect(status().isNotFound());
         verify(envioService, times(1)).obtenerEnvioPorId(99);
@@ -159,7 +159,7 @@ class EnvioControllerTest {
 
         when(envioService.guardarEnvio(any(Envio.class))).thenReturn(savedEnvio);
 
-        mockMvc.perform(post("/api/envios")
+        mockMvc.perform(post("/api/v1/envios")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(nuevoEnvio))
                         .accept(MediaTypes.HAL_JSON_VALUE))
@@ -167,8 +167,8 @@ class EnvioControllerTest {
                 .andExpect(content().contentType(MediaTypes.HAL_JSON_VALUE))
                 // Los campos de la entidad están en la raíz, los enlaces también
                 .andExpect(jsonPath("$.idEnvio", is(savedEnvio.getIdEnvio())))
-                .andExpect(jsonPath("$._links.self.href", containsString("/api/envios/3")))
-                .andExpect(jsonPath("$._links.productos-del-envio.href", containsString("/api/envios/3/productos")));
+                .andExpect(jsonPath("$._links.self.href", containsString("/api/v1/envios/3")))
+                .andExpect(jsonPath("$._links.productos-del-envio.href", containsString("/api/v1/envios/3/productos")));
 
         verify(envioService, times(1)).guardarEnvio(any(Envio.class));
     }
@@ -189,7 +189,7 @@ class EnvioControllerTest {
 
         when(envioService.actualizarEnvio(eq(1), any(Envio.class))).thenReturn(existingEnvioUpdated);
 
-        mockMvc.perform(put("/api/envios/{id}", 1)
+        mockMvc.perform(put("/api/v1/envios/{id}", 1)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(updatedInfo))
                         .accept(MediaTypes.HAL_JSON_VALUE))
@@ -198,7 +198,7 @@ class EnvioControllerTest {
                 // Los campos de la entidad están en la raíz, los enlaces también
                 .andExpect(jsonPath("$.idEnvio", is(existingEnvioUpdated.getIdEnvio())))
                 .andExpect(jsonPath("$.estadoPedido", is(Estado.ENTREGADO.toString())))
-                .andExpect(jsonPath("$._links.self.href", containsString("/api/envios/1")));
+                .andExpect(jsonPath("$._links.self.href", containsString("/api/v1/envios/1")));
         verify(envioService, times(1)).actualizarEnvio(eq(1), any(Envio.class));
     }
 
@@ -209,7 +209,7 @@ class EnvioControllerTest {
 
         when(envioService.actualizarEnvio(eq(99), any(Envio.class))).thenReturn(null);
 
-        mockMvc.perform(put("/api/envios/{id}", 99)
+        mockMvc.perform(put("/api/v1/envios/{id}", 99)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(updatedInfo))
                         .accept(MediaTypes.HAL_JSON_VALUE))
@@ -221,7 +221,7 @@ class EnvioControllerTest {
     void eliminarEnvio_debeRetornarNoContent() throws Exception {
         doNothing().when(envioService).eliminarEnvio(1);
 
-        mockMvc.perform(delete("/api/envios/{id}", 1))
+        mockMvc.perform(delete("/api/v1/envios/{id}", 1))
                 .andExpect(status().isNoContent());
         verify(envioService, times(1)).eliminarEnvio(1);
     }
@@ -239,7 +239,7 @@ class EnvioControllerTest {
 
         when(envioService.agregarProducto(1, p3.getIdProducto())).thenReturn(envioAfterAddition);
 
-        mockMvc.perform(post("/api/envios/{idEnvio}/productos/{idProducto}", 1, p3.getIdProducto())
+        mockMvc.perform(post("/api/v1/envios/{idEnvio}/productos/{idProducto}", 1, p3.getIdProducto())
                         .accept(MediaTypes.HAL_JSON_VALUE))
                 .andExpect(status().isOk())
                 .andExpect(content().contentType(MediaTypes.HAL_JSON_VALUE))
@@ -249,7 +249,7 @@ class EnvioControllerTest {
                 // Para verificar un producto específico en la lista (sin DTOs, se accede directamente a sus campos)
                 // Usamos `hasItems` para verificar la presencia de los nombres en la lista de productos
                 .andExpect(jsonPath("$.productos[*].nombre", hasItems(p1.getNombre(), p2.getNombre(), p3.getNombre())))
-                .andExpect(jsonPath("$._links.self.href", containsString("/api/envios/1")));
+                .andExpect(jsonPath("$._links.self.href", containsString("/api/v1/envios/1")));
         verify(envioService, times(1)).agregarProducto(1, p3.getIdProducto());
     }
 
@@ -264,7 +264,7 @@ class EnvioControllerTest {
 
         when(envioService.cambiarEstado(eq(1), eq(Estado.ENTREGADO))).thenReturn(updatedEnvio);
 
-        mockMvc.perform(put("/api/envios/{idEnvio}/estado", 1)
+        mockMvc.perform(put("/api/v1/envios/{idEnvio}/estado", 1)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(Estado.ENTREGADO)))
                 .andExpect(status().isOk())
@@ -272,7 +272,7 @@ class EnvioControllerTest {
                 // Los campos de la entidad están en la raíz
                 .andExpect(jsonPath("$.idEnvio", is(updatedEnvio.getIdEnvio())))
                 .andExpect(jsonPath("$.estadoPedido", is(Estado.ENTREGADO.toString())))
-                .andExpect(jsonPath("$._links.self.href", containsString("/api/envios/1")))
+                .andExpect(jsonPath("$._links.self.href", containsString("/api/v1/envios/1")))
                 // Enlaces que ya no deberían aparecer si el estado es ENTREGADO
                 .andExpect(jsonPath("$._links.marcar-entregado").doesNotExist())
                 .andExpect(jsonPath("$._links.cancelar").doesNotExist())
@@ -294,7 +294,7 @@ class EnvioControllerTest {
 
         when(envioService.eliminarProducto(1, p1.getIdProducto())).thenReturn(envioAfterRemoval);
 
-        mockMvc.perform(delete("/api/envios/{idEnvio}/productos/{idProducto}", 1, p1.getIdProducto())
+        mockMvc.perform(delete("/api/v1/envios/{idEnvio}/productos/{idProducto}", 1, p1.getIdProducto())
                         .accept(MediaTypes.HAL_JSON_VALUE))
                 .andExpect(status().isOk())
                 .andExpect(content().contentType(MediaTypes.HAL_JSON_VALUE))
@@ -303,7 +303,7 @@ class EnvioControllerTest {
                 .andExpect(jsonPath("$.productos", hasSize(1)))
                 // Acceso directo a los campos del producto restante
                 .andExpect(jsonPath("$.productos[0].idProducto", is(p2.getIdProducto())))
-                .andExpect(jsonPath("$._links.self.href", containsString("/api/envios/1")));
+                .andExpect(jsonPath("$._links.self.href", containsString("/api/v1/envios/1")));
         verify(envioService, times(1)).eliminarProducto(1, p1.getIdProducto());
     }
 
@@ -312,7 +312,7 @@ class EnvioControllerTest {
         List<Producto> productosDelEnvio1 = Arrays.asList(p1, p2);
         when(envioService.obtenerProductosDelEnvio(1)).thenReturn(productosDelEnvio1);
 
-        mockMvc.perform(get("/api/envios/{idEnvio}/productos", 1)
+        mockMvc.perform(get("/api/v1/envios/{idEnvio}/productos", 1)
                         .accept(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
                 .andExpect(content().contentType(MediaType.APPLICATION_JSON))
