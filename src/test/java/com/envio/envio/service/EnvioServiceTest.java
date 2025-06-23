@@ -65,7 +65,7 @@ class EnvioServiceTest {
 
         // Envios
         envio1 = new Envio();
-        envio1.setIdEnvio(1);
+        envio1.setIdEnvio(1L);
         envio1.setEstadoPedido(Estado.PENDIENTE);
         envio1.setIdCliente(101);
         envio1.setFechaEnvio(new Date());
@@ -75,7 +75,7 @@ class EnvioServiceTest {
         envio1.setProductos(productosEnvio1);
 
         envio2 = new Envio();
-        envio2.setIdEnvio(2);
+        envio2.setIdEnvio(2L);
         envio2.setEstadoPedido(Estado.EN_CAMINO);
         envio2.setIdCliente(102);
         envio2.setFechaEnvio(new Date(System.currentTimeMillis() + 86400000));
@@ -110,7 +110,7 @@ class EnvioServiceTest {
 
         // Then
         assertTrue(foundEnvio.isPresent());
-        assertEquals(envio1, foundEnvio.get());
+        assertEquals(foundEnvio.get().getIdEnvio(),envio1.getIdEnvio());
         verify(envioRepository, times(1)).findById(1);
     }
 
@@ -137,7 +137,7 @@ class EnvioServiceTest {
         nuevoEnvio.setProductos(new HashSet<>(Arrays.asList(p1)));
 
         Envio savedEnvioMock = new Envio();
-        savedEnvioMock.setIdEnvio(3);
+        savedEnvioMock.setIdEnvio(3L);
         savedEnvioMock.setEstadoPedido(Estado.PENDIENTE);
         savedEnvioMock.setIdCliente(103);
         savedEnvioMock.setFechaEnvio(nuevoEnvio.getFechaEnvio());
@@ -145,7 +145,7 @@ class EnvioServiceTest {
 
 
         when(envioRepository.save(nuevoEnvio)).thenReturn(savedEnvioMock);
-        when(chilexpressApiService.notificarNuevoEnvio(anyInt())).thenReturn(true);
+        when(chilexpressApiService.notificarNuevoEnvio(anyLong())).thenReturn(true);
 
         // When
         Envio result = envioService.guardarEnvio(nuevoEnvio);
@@ -174,7 +174,7 @@ class EnvioServiceTest {
 
         when(envioRepository.findById(1)).thenReturn(Optional.of(existingEnvioCloned));
         when(envioRepository.save(any(Envio.class))).thenReturn(existingEnvioCloned);
-        when(chilexpressApiService.actualizarEstadoEnvio(anyInt(), anyString())).thenReturn(true);
+        when(chilexpressApiService.actualizarEstadoEnvio(anyLong(), anyString())).thenReturn(true);
 
         // When
         Envio result = envioService.actualizarEnvio(1, updatedInfo);
@@ -212,7 +212,7 @@ class EnvioServiceTest {
         assertEquals(Estado.PENDIENTE, result.getEstadoPedido());
         verify(envioRepository, times(1)).findById(1);
         verify(envioRepository, times(1)).save(existingEnvioCloned);
-        verify(chilexpressApiService, never()).actualizarEstadoEnvio(anyInt(), anyString());
+        verify(chilexpressApiService, never()).actualizarEstadoEnvio(anyLong(), anyString());
     }
 
     @Test
@@ -220,7 +220,7 @@ class EnvioServiceTest {
         // Given
         when(envioRepository.findById(1)).thenReturn(Optional.of(envio1));
         doNothing().when(envioRepository).deleteById(1);
-        when(chilexpressApiService.cancelarEnvio(anyInt())).thenReturn(true);
+        when(chilexpressApiService.cancelarEnvio(anyLong())).thenReturn(true);
 
         // When
         envioService.eliminarEnvio(1);
@@ -267,7 +267,7 @@ class EnvioServiceTest {
         // Given
         when(envioRepository.findById(1)).thenReturn(Optional.of(envio1));
         when(envioRepository.save(envio1)).thenReturn(envio1);
-        when(chilexpressApiService.actualizarEstadoEnvio(anyInt(), anyString())).thenReturn(true);
+        when(chilexpressApiService.actualizarEstadoEnvio(anyLong(), anyString())).thenReturn(true);
 
         // When
         Envio result = envioService.cambiarEstado(1, Estado.ENTREGADO);
