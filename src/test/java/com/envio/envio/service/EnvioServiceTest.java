@@ -27,7 +27,6 @@ import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
-// No se necesita @ActiveProfiles("test") aquí porque es un test unitario del servicio
 class EnvioServiceTest {
 
     @Mock
@@ -89,13 +88,8 @@ class EnvioServiceTest {
 
     @Test
     void listarEnvios_debeRetornarListaDeEnvios() {
-        // Given
         when(envioRepository.findAll()).thenReturn(Arrays.asList(envio1, envio2));
-
-        // When
         List<Envio> envios = envioService.listarEnvios();
-
-        // Then
         assertNotNull(envios);
         assertEquals(2, envios.size());
         assertEquals(envio1, envios.get(0));
@@ -105,13 +99,8 @@ class EnvioServiceTest {
 
     @Test
     void obtenerEnvioPorId_debeRetornarEnvioCuandoExiste() {
-        // Given
         when(envioRepository.findById(1)).thenReturn(Optional.of(envio1));
-
-        // When
         Optional<Envio> foundEnvio = envioService.obtenerEnvioPorId(1);
-
-        // Then
         assertTrue(foundEnvio.isPresent());
         assertEquals(foundEnvio.get().getIdEnvio(),envio1.getIdEnvio());
         verify(envioRepository, times(1)).findById(1);
@@ -119,20 +108,14 @@ class EnvioServiceTest {
 
     @Test
     void obtenerEnvioPorId_debeRetornarVacioCuandoNoExiste() {
-        // Given
         when(envioRepository.findById(99)).thenReturn(Optional.empty());
-
-        // When
         Optional<Envio> foundEnvio = envioService.obtenerEnvioPorId(99);
-
-        // Then
         assertFalse(foundEnvio.isPresent());
         verify(envioRepository, times(1)).findById(99);
     }
 
     @Test
     void guardarEnvio_debeGuardarYNotificarChilexpress() {
-        // Given
         Envio nuevoEnvio = new Envio();
         nuevoEnvio.setEstadoPedido(Estado.PENDIENTE);
         nuevoEnvio.setIdCliente(103);
@@ -149,11 +132,7 @@ class EnvioServiceTest {
 
         when(envioRepository.save(nuevoEnvio)).thenReturn(savedEnvioMock);
         when(chilexpressApiService.notificarNuevoEnvio(anyInt())).thenReturn(true);
-
-        // When
         Envio result = envioService.guardarEnvio(nuevoEnvio);
-
-        // Then
         assertNotNull(result);
         assertEquals(savedEnvioMock.getIdEnvio(), result.getIdEnvio());
         verify(envioRepository, times(1)).save(nuevoEnvio);
@@ -162,7 +141,6 @@ class EnvioServiceTest {
 
     @Test
     void actualizarEnvio_debeActualizarYNotificarCambioEstado() {
-        // Given
         Envio updatedInfo = new Envio();
         updatedInfo.setEstadoPedido(Estado.ENTREGADO);
         updatedInfo.setFechaEnvio(new Date());
@@ -178,11 +156,7 @@ class EnvioServiceTest {
         when(envioRepository.findById(1)).thenReturn(Optional.of(existingEnvioCloned));
         when(envioRepository.save(any(Envio.class))).thenReturn(existingEnvioCloned);
         when(chilexpressApiService.actualizarEstadoEnvio(anyInt(), anyString())).thenReturn(true);
-
-        // When
         Envio result = envioService.actualizarEnvio(1, updatedInfo);
-
-        // Then
         assertNotNull(result);
         assertEquals(Estado.ENTREGADO, result.getEstadoPedido());
         verify(envioRepository, times(1)).findById(1);
@@ -192,7 +166,6 @@ class EnvioServiceTest {
 
     @Test
     void actualizarEnvio_debeActualizarSinNotificarCambioEstadoSiEstadoEsMismo() {
-        // Given
         Envio updatedInfo = new Envio();
         updatedInfo.setEstadoPedido(Estado.PENDIENTE);
         updatedInfo.setFechaEnvio(new Date());
@@ -206,11 +179,7 @@ class EnvioServiceTest {
 
         when(envioRepository.findById(1)).thenReturn(Optional.of(existingEnvioCloned));
         when(envioRepository.save(any(Envio.class))).thenReturn(existingEnvioCloned);
-
-        // When
         Envio result = envioService.actualizarEnvio(1, updatedInfo);
-
-        // Then
         assertNotNull(result);
         assertEquals(Estado.PENDIENTE, result.getEstadoPedido());
         verify(envioRepository, times(1)).findById(1);
@@ -220,15 +189,10 @@ class EnvioServiceTest {
 
     @Test
     void eliminarEnvio_debeEliminarYCancelarEnChilexpress() {
-        // Given
         when(envioRepository.findById(1)).thenReturn(Optional.of(envio1));
         doNothing().when(envioRepository).deleteById(1);
         when(chilexpressApiService.cancelarEnvio(anyInt())).thenReturn(true);
-
-        // When
         envioService.eliminarEnvio(1);
-
-        // Then
         verify(envioRepository, times(1)).findById(1);
         verify(chilexpressApiService, times(1)).cancelarEnvio(envio1.getIdEnvio());
         verify(envioRepository, times(1)).deleteById(1);
@@ -236,7 +200,6 @@ class EnvioServiceTest {
 
     @Test
     void agregarProducto_debeAgregarProductoAEnvio() {
-        // Given
         when(envioRepository.findById(1)).thenReturn(Optional.of(envio1));
         when(productoRepository.findById(p3.getIdProducto())).thenReturn(Optional.of(p3));
 
@@ -250,11 +213,7 @@ class EnvioServiceTest {
         envioAfterAddition.setProductos(productosTemp);
 
         when(envioRepository.save(any(Envio.class))).thenReturn(envioAfterAddition);
-
-        // When
         Envio result = envioService.agregarProducto(1, p3.getIdProducto());
-
-        // Then
         assertNotNull(result);
         assertTrue(result.getProductos().contains(p1));
         assertTrue(result.getProductos().contains(p2));
@@ -267,15 +226,10 @@ class EnvioServiceTest {
 
     @Test
     void cambiarEstado_debeCambiarEstadoYNotificarChilexpress() {
-        // Given
         when(envioRepository.findById(1)).thenReturn(Optional.of(envio1));
         when(envioRepository.save(envio1)).thenReturn(envio1);
         when(chilexpressApiService.actualizarEstadoEnvio(anyInt(), anyString())).thenReturn(true);
-
-        // When
         Envio result = envioService.cambiarEstado(1, Estado.ENTREGADO);
-
-        // Then
         assertNotNull(result);
         assertEquals(Estado.ENTREGADO, result.getEstadoPedido());
         verify(envioRepository, times(1)).findById(1);
@@ -285,7 +239,6 @@ class EnvioServiceTest {
 
     @Test
     void eliminarProductoDelEnvio_debeEliminarProductoDeEnvio() {
-        // Given
         envio1.getProductos().clear();
         envio1.getProductos().add(p1);
         envio1.getProductos().add(p2);
@@ -301,14 +254,8 @@ class EnvioServiceTest {
         Set<Producto> productosTemp = new HashSet<>();
         productosTemp.add(p2);
         envioAfterRemoval.setProductos(productosTemp);
-
         when(envioRepository.save(any(Envio.class))).thenReturn(envioAfterRemoval);
-
-
-        // When
         Envio result = envioService.eliminarProducto(1, p1.getIdProducto());
-
-        // Then
         assertNotNull(result);
         assertFalse(result.getProductos().contains(p1));
         assertTrue(result.getProductos().contains(p2));
@@ -320,16 +267,11 @@ class EnvioServiceTest {
 
     @Test
     void obtenerProductosDelEnvio_debeRetornarListaDeProductos() {
-        // Given
         envio1.getProductos().clear();
         envio1.getProductos().add(p1);
         envio1.getProductos().add(p2);
         when(envioRepository.findById(1)).thenReturn(Optional.of(envio1));
-
-        // When
         List<Producto> productos = envioService.obtenerProductosDelEnvio(1);
-
-        // Then
         assertNotNull(productos);
         assertEquals(2, productos.size());
         assertTrue(productos.contains(p1));
@@ -339,13 +281,8 @@ class EnvioServiceTest {
 
     @Test
     void obtenerProductosDelEnvio_debeRetornarListaVaciaSiEnvioNoExiste() {
-        // Given
         when(envioRepository.findById(99)).thenReturn(Optional.empty());
-
-        // When
         List<Producto> productos = envioService.obtenerProductosDelEnvio(99);
-
-        // Then
         assertNotNull(productos);
         assertTrue(productos.isEmpty());
         verify(envioRepository, times(1)).findById(99);

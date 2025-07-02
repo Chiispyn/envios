@@ -34,21 +34,22 @@ public class ProductoService {
                 .map(productoExistente -> {
                     productoExistente.setNombre(productoDetalles.getNombre());
                     productoExistente.setPrecio(productoDetalles.getPrecio());
-                    // Otros atributos del producto si los tuvieras
                     return productoRepository.save(productoExistente);
                 })
-                .orElse(null); // O podrías lanzar una excepción si el producto no existe
+                .orElse(null); 
     }
 
     // Método para eliminar un producto
-    public void eliminarProducto(Integer id) {
-        productoRepository.deleteById(id);
+    public boolean eliminarProducto(Integer id) {
+        if (productoRepository.existsById(id)) {
+            productoRepository.deleteById(id);
+            return true; 
+        }
+        return false; 
     }
 
-    // Métodos adicionales si se necesitan búsquedas específicas
+
     public List<Producto> buscarProductosPorNombre(String nombre) {
-        // Implementar lógica de búsqueda por nombre si el ProductoRepository lo soporta
-        // Ejemplo: return productoRepository.findByNombreContainingIgnoreCase(nombre);
-        return productoRepository.findAll(); // Placeholder
+        return productoRepository.findAll(); 
     }
 }

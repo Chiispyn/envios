@@ -319,4 +319,46 @@ class EnvioControllerTest {
                 .andExpect(jsonPath("$[1].idProducto", is(p2.getIdProducto())));
         verify(envioService, times(1)).obtenerProductosDelEnvio(1);
     }
+
+     @Test
+    void cambiarEstadoDelEnvio_debeRetornarNotFoundSiEnvioNoExiste() throws Exception {
+        Estado nuevoEstado = Estado.ENTREGADO;
+        when(envioService.cambiarEstado(eq(99), any(Estado.class))).thenReturn(null);
+
+        mockMvc.perform(put("/api/v1/envios/{idEnvio}/estado", 99)
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .content(objectMapper.writeValueAsString(nuevoEstado)))
+                .andExpect(status().isNotFound());
+        verify(envioService, times(1)).cambiarEstado(eq(99), any(Estado.class));
+    }
+
+    @Test
+    void agregarProductoAlEnvio_debeRetornarNotFoundSiEnvioOProductoNoExisten() throws Exception {
+        when(envioService.agregarProducto(eq(99), eq(p3.getIdProducto()))).thenReturn(null);
+
+        mockMvc.perform(post("/api/v1/envios/{idEnvio}/productos/{idProducto}", 99, p3.getIdProducto())
+                                .accept(MediaTypes.HAL_JSON_VALUE))
+                .andExpect(status().isNotFound());
+        verify(envioService, times(1)).agregarProducto(eq(99), eq(p3.getIdProducto()));
+    }
+
+    @Test
+    void eliminarProductoDelEnvio_debeRetornarNotFoundSiEnvioOProductoNoExisten() throws Exception {
+        when(envioService.eliminarProducto(eq(99), eq(p1.getIdProducto()))).thenReturn(null);
+
+        mockMvc.perform(delete("/api/v1/envios/{idEnvio}/productos/{idProducto}", 99, p1.getIdProducto())
+                                .accept(MediaTypes.HAL_JSON_VALUE))
+                .andExpect(status().isNotFound());
+        verify(envioService, times(1)).eliminarProducto(eq(99), eq(p1.getIdProducto()));
+    }
+
+    @Test
+    void obtenerProductosDelEnvio_debeRetornarNotFoundSiEnvioNoExiste() throws Exception {
+        when(envioService.obtenerProductosDelEnvio(99)).thenReturn(null);
+
+        mockMvc.perform(get("/api/v1/envios/{idEnvio}/productos", 99)
+                                .accept(MediaType.APPLICATION_JSON))
+                .andExpect(status().isNotFound());
+        verify(envioService, times(1)).obtenerProductosDelEnvio(99);
+    }
 }

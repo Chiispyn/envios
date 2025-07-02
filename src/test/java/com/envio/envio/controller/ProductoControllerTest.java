@@ -27,7 +27,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 @WebMvcTest(ProductoController.class)
 @Import(ProductoModelAssembler.class)
-@ActiveProfiles("test") // Activa el perfil 'test' aquí
+@ActiveProfiles("test")
 class ProductoControllerTest {
 
     @Autowired
@@ -44,7 +44,6 @@ class ProductoControllerTest {
 
     @BeforeEach
     void setUp() {
-        // Productos del DataLoader
         producto1 = new Producto();
         producto1.setIdProducto(1);
         producto1.setNombre("Plato de madera de lenga");
@@ -58,12 +57,9 @@ class ProductoControllerTest {
 
     @Test
     void obtenerTodosLosProductos_debeRetornarListaConHATEOAS() throws Exception {
-        // Given
         when(productoService.listarProductos()).thenReturn(Arrays.asList(producto1, producto2));
-
-        // When & Then
         mockMvc.perform(get("/api/v1/productos")
-                        .accept(MediaTypes.HAL_JSON_VALUE))
+                                .accept(MediaTypes.HAL_JSON_VALUE))
                 .andExpect(status().isOk())
                 .andExpect(content().contentType(MediaTypes.HAL_JSON_VALUE))
                 .andExpect(jsonPath("$._embedded.productoList", hasSize(2)))
@@ -78,12 +74,9 @@ class ProductoControllerTest {
 
     @Test
     void obtenerProducto_debeRetornarProductoConHATEOASCuandoExiste() throws Exception {
-        // Given
         when(productoService.obtenerProductoPorId(1)).thenReturn(Optional.of(producto1));
-
-        // When & Then
         mockMvc.perform(get("/api/v1/productos/{id}", 1)
-                        .accept(MediaTypes.HAL_JSON_VALUE))
+                                .accept(MediaTypes.HAL_JSON_VALUE))
                 .andExpect(status().isOk())
                 .andExpect(content().contentType(MediaTypes.HAL_JSON_VALUE))
                 .andExpect(jsonPath("$.idProducto", is(producto1.getIdProducto())))
@@ -95,35 +88,27 @@ class ProductoControllerTest {
 
     @Test
     void obtenerProducto_debeRetornarNotFoundCuandoNoExiste() throws Exception {
-        // Given
         when(productoService.obtenerProductoPorId(99)).thenReturn(Optional.empty());
-
-        // When & Then
         mockMvc.perform(get("/api/v1/productos/{id}", 99)
-                        .accept(MediaTypes.HAL_JSON_VALUE))
+                                .accept(MediaTypes.HAL_JSON_VALUE))
                 .andExpect(status().isNotFound());
         verify(productoService, times(1)).obtenerProductoPorId(99);
     }
 
     @Test
     void crearProducto_debeCrearProductoYRetornarConHATEOAS() throws Exception {
-        // Given
         Producto nuevoProducto = new Producto();
-        nuevoProducto.setNombre("Shampoo sólido biodegradable"); // Un producto que podría ser nuevo
+        nuevoProducto.setNombre("Shampoo sólido biodegradable");
         nuevoProducto.setPrecio(5000.0);
-
         Producto savedProducto = new Producto();
-        savedProducto.setIdProducto(3); // Simula el ID que se le asignaría al guardarse
+        savedProducto.setIdProducto(3);
         savedProducto.setNombre("Shampoo sólido biodegradable");
         savedProducto.setPrecio(5000.0);
-
         when(productoService.guardarProducto(any(Producto.class))).thenReturn(savedProducto);
-
-        // When & Then
         mockMvc.perform(post("/api/v1/productos")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(nuevoProducto))
-                        .accept(MediaTypes.HAL_JSON_VALUE))
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .content(objectMapper.writeValueAsString(nuevoProducto))
+                                .accept(MediaTypes.HAL_JSON_VALUE))
                 .andExpect(status().isCreated())
                 .andExpect(content().contentType(MediaTypes.HAL_JSON_VALUE))
                 .andExpect(jsonPath("$.idProducto", is(savedProducto.getIdProducto())))
@@ -135,23 +120,18 @@ class ProductoControllerTest {
 
     @Test
     void actualizarProducto_debeActualizarProductoYRetornarConHATEOAS() throws Exception {
-        // Given
         Producto updatedInfo = new Producto();
-        updatedInfo.setNombre("Plato de madera de roble"); 
+        updatedInfo.setNombre("Plato de madera de roble");
         updatedInfo.setPrecio(4000.0);
-
         Producto existingProductUpdated = new Producto();
         existingProductUpdated.setIdProducto(1);
         existingProductUpdated.setNombre("Plato de madera de roble");
         existingProductUpdated.setPrecio(4000.0);
-
         when(productoService.actualizarProducto(eq(1), any(Producto.class))).thenReturn(existingProductUpdated);
-
-        // When & Then
         mockMvc.perform(put("/api/v1/productos/{id}", 1)
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(updatedInfo))
-                        .accept(MediaTypes.HAL_JSON_VALUE))
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .content(objectMapper.writeValueAsString(updatedInfo))
+                                .accept(MediaTypes.HAL_JSON_VALUE))
                 .andExpect(status().isOk())
                 .andExpect(content().contentType(MediaTypes.HAL_JSON_VALUE))
                 .andExpect(jsonPath("$.idProducto", is(existingProductUpdated.getIdProducto())))
@@ -162,29 +142,30 @@ class ProductoControllerTest {
 
     @Test
     void actualizarProducto_debeRetornarNotFoundSiProductoNoExiste() throws Exception {
-        // Given
         Producto updatedInfo = new Producto();
         updatedInfo.setNombre("Producto Inexistente");
-
         when(productoService.actualizarProducto(eq(99), any(Producto.class))).thenReturn(null);
-
-        // When & Then
         mockMvc.perform(put("/api/v1/productos/{id}", 99)
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(updatedInfo))
-                        .accept(MediaTypes.HAL_JSON_VALUE))
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .content(objectMapper.writeValueAsString(updatedInfo))
+                                .accept(MediaTypes.HAL_JSON_VALUE))
                 .andExpect(status().isNotFound());
         verify(productoService, times(1)).actualizarProducto(eq(99), any(Producto.class));
     }
 
     @Test
     void eliminarProducto_debeRetornarNoContent() throws Exception {
-        // Given
-        doNothing().when(productoService).eliminarProducto(1);
-
-        // When & Then
+        when(productoService.eliminarProducto(eq(1))).thenReturn(true); 
         mockMvc.perform(delete("/api/v1/productos/{id}", 1))
                 .andExpect(status().isNoContent());
         verify(productoService, times(1)).eliminarProducto(1);
+    }
+
+    @Test
+    void eliminarProducto_debeRetornarNotFoundCuandoNoExiste() throws Exception {
+        when(productoService.eliminarProducto(eq(99))).thenReturn(false); 
+        mockMvc.perform(delete("/api/v1/productos/{id}", 99))
+                .andExpect(status().isNotFound());
+        verify(productoService, times(1)).eliminarProducto(99);
     }
 }

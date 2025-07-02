@@ -45,9 +45,8 @@ public class EnvioService {
                     if (envio.getFechaEnvio() != null) existingEnvio.setFechaEnvio(envio.getFechaEnvio());
                     if (envio.getEstadoPedido() != null) existingEnvio.setEstadoPedido(envio.getEstadoPedido());
                     if (envio.getIdCliente() != null) existingEnvio.setIdCliente(envio.getIdCliente());
-                    // Asegúrate de que la colección de productos se maneje correctamente, por ejemplo, fusionando o reemplazando
                     if (envio.getProductos() != null) existingEnvio.setProductos(envio.getProductos());
-                    Envio envioActualizado = envioRepository.save(existingEnvio);
+                        Envio envioActualizado = envioRepository.save(existingEnvio);
                     if (envio.getEstadoPedido() != null && !envio.getEstadoPedido().equals(estadoAnterior)) {
                         chilexpressApiService.actualizarEstadoEnvio(envioActualizado.getIdEnvio(), envioActualizado.getEstadoPedido().toString());
                     }

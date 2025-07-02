@@ -30,7 +30,6 @@ class ProductoServiceTest {
 
     @BeforeEach
     void setUp() {
-        // Productos del DataLoader
         producto1 = new Producto();
         producto1.setIdProducto(1);
         producto1.setNombre("Plato de madera de lenga");
@@ -44,13 +43,10 @@ class ProductoServiceTest {
 
     @Test
     void listarProductos_debeRetornarListaDeProductos() {
-        // Given
         when(productoRepository.findAll()).thenReturn(Arrays.asList(producto1, producto2));
 
-        // When
         List<Producto> productos = productoService.listarProductos();
 
-        // Then
         assertNotNull(productos);
         assertEquals(2, productos.size());
         assertTrue(productos.contains(producto1));
@@ -60,13 +56,10 @@ class ProductoServiceTest {
 
     @Test
     void obtenerProductoPorId_debeRetornarProductoCuandoExiste() {
-        // Given
         when(productoRepository.findById(1)).thenReturn(Optional.of(producto1));
 
-        // When
         Optional<Producto> foundProducto = productoService.obtenerProductoPorId(1);
 
-        // Then
         assertTrue(foundProducto.isPresent());
         assertEquals(producto1, foundProducto.get());
         verify(productoRepository, times(1)).findById(1);
@@ -74,36 +67,26 @@ class ProductoServiceTest {
 
     @Test
     void obtenerProductoPorId_debeRetornarVacioCuandoNoExiste() {
-        // Given
         when(productoRepository.findById(99)).thenReturn(Optional.empty());
-
-        // When
         Optional<Producto> foundProducto = productoService.obtenerProductoPorId(99);
 
-        // Then
         assertFalse(foundProducto.isPresent());
         verify(productoRepository, times(1)).findById(99);
     }
 
     @Test
     void guardarProducto_debeGuardarProducto() {
-        // Given
         Producto nuevoProducto = new Producto();
-        nuevoProducto.setNombre("Shampoo sólido biodegradable"); // Un producto que podría ser nuevo
+        nuevoProducto.setNombre("Shampoo sólido biodegradable");
         nuevoProducto.setPrecio(5000.0);
 
-        // Cuando el repositorio guarda, devuelve un producto con un ID asignado (simulamos ID 3)
         Producto savedProductoMock = new Producto();
         savedProductoMock.setIdProducto(3);
         savedProductoMock.setNombre("Shampoo sólido biodegradable");
         savedProductoMock.setPrecio(5000.0);
 
         when(productoRepository.save(any(Producto.class))).thenReturn(savedProductoMock);
-
-        // When
         Producto result = productoService.guardarProducto(nuevoProducto);
-
-        // Then
         assertNotNull(result);
         assertEquals(savedProductoMock.getIdProducto(), result.getIdProducto());
         assertEquals(savedProductoMock.getNombre(), result.getNombre());
@@ -112,12 +95,10 @@ class ProductoServiceTest {
 
     @Test
     void actualizarProducto_debeActualizarProductoCuandoExiste() {
-        // Given
         Producto updatedInfo = new Producto();
-        updatedInfo.setNombre("Plato de madera de roble"); // Nuevo nombre para el producto1
+        updatedInfo.setNombre("Plato de madera de roble");
         updatedInfo.setPrecio(4000.0);
 
-        // Simula el producto existente después de la actualización
         Producto existingProductUpdated = new Producto();
         existingProductUpdated.setIdProducto(producto1.getIdProducto());
         existingProductUpdated.setNombre(updatedInfo.getNombre());
@@ -125,11 +106,7 @@ class ProductoServiceTest {
 
         when(productoRepository.findById(producto1.getIdProducto())).thenReturn(Optional.of(producto1));
         when(productoRepository.save(any(Producto.class))).thenReturn(existingProductUpdated);
-
-        // When
         Producto result = productoService.actualizarProducto(producto1.getIdProducto(), updatedInfo);
-
-        // Then
         assertNotNull(result);
         assertEquals("Plato de madera de roble", result.getNombre());
         assertEquals(4000.0, result.getPrecio());
@@ -139,30 +116,32 @@ class ProductoServiceTest {
 
     @Test
     void actualizarProducto_debeRetornarNuloCuandoNoExiste() {
-        // Given
         Producto updatedInfo = new Producto();
         updatedInfo.setNombre("Producto Inexistente");
 
         when(productoRepository.findById(99)).thenReturn(Optional.empty());
-
-        // When
         Producto result = productoService.actualizarProducto(99, updatedInfo);
-
-        // Then
         assertNull(result);
         verify(productoRepository, times(1)).findById(99);
         verify(productoRepository, never()).save(any(Producto.class));
     }
 
     @Test
-    void eliminarProducto_debeEliminarProducto() {
-        // Given
-        doNothing().when(productoRepository).deleteById(1);
+    void eliminarProducto_debeEliminarProductoCuandoExiste() {
+        when(productoRepository.existsById(1)).thenReturn(true); 
+        doNothing().when(productoRepository).deleteById(1); 
+        boolean result = productoService.eliminarProducto(1); 
+        assertTrue(result); 
+        verify(productoRepository, times(1)).existsById(1); 
+        verify(productoRepository, times(1)).deleteById(1); 
+    }
 
-        // When
-        productoService.eliminarProducto(1);
-
-        // Then
-        verify(productoRepository, times(1)).deleteById(1);
+    @Test
+    void eliminarProducto_debeRetornarFalsoCuandoNoExiste() {
+        when(productoRepository.existsById(99)).thenReturn(false); 
+        boolean result = productoService.eliminarProducto(99);
+        assertFalse(result); 
+        verify(productoRepository, times(1)).existsById(99); 
+        verify(productoRepository, never()).deleteById(anyInt()); 
     }
 }
