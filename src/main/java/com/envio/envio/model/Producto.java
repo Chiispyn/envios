@@ -13,5 +13,4 @@ public class Producto {
     private Integer idProducto;
     private String nombre;
     private Double precio;
-    // Otros atributos del producto
 }

@@ -6,7 +6,7 @@ import com.envio.envio.model.Producto;
 import com.envio.envio.repository.EnvioRepository;
 import com.envio.envio.repository.ProductoRepository;
 import org.springframework.boot.CommandLineRunner;
-import org.springframework.context.annotation.Profile; // Importar Profile
+import org.springframework.context.annotation.Profile; 
 import org.springframework.stereotype.Component;
 
 import java.util.Date;
@@ -14,7 +14,7 @@ import java.util.HashSet;
 import java.util.Set;
 
 @Component
-@Profile("!test") // ¡Este DataLoader se ejecutará solo cuando el perfil 'test' NO esté activo!
+@Profile("!test") 
 public class DataLoader implements CommandLineRunner {
 
     private final ProductoRepository productoRepository;
@@ -27,8 +27,6 @@ public class DataLoader implements CommandLineRunner {
 
     @Override
     public void run(String... args) throws Exception {
-        // Limpiar las tablas para asegurar un estado fresco si se reinicia la aplicación
-        // ¡OJO! Esto es útil para desarrollo, pero no lo usarías en producción sin un plan de migración de datos.
         envioRepository.deleteAll();
         productoRepository.deleteAll();
 

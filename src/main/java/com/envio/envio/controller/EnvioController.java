@@ -35,9 +35,8 @@ public class EnvioController {
     @GetMapping(produces = MediaTypes.HAL_JSON_VALUE)
     public ResponseEntity<CollectionModel<EntityModel<Envio>>> obtenerTodosLosEnvios() {
         List<EntityModel<Envio>> envios = envioService.listarEnvios().stream()
-                .map(assembler::toModel) // Convertimos cada entidad Envio a EntityModel
+                .map(assembler::toModel) 
                 .collect(Collectors.toList());
-
         return ResponseEntity.ok(
                 CollectionModel.of(envios,
                         linkTo(methodOn(EnvioController.class).obtenerTodosLosEnvios()).withSelfRel(),

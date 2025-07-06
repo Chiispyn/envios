@@ -31,7 +31,7 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 @WebMvcTest(EnvioController.class)
-@Import(EnvioModelAssembler.class) // Importamos el EnvioModelAssembler para que esté disponible en el contexto del test
+@Import(EnvioModelAssembler.class) 
 class EnvioControllerTest {
 
     @Autowired
@@ -96,13 +96,11 @@ class EnvioControllerTest {
                         .accept(MediaTypes.HAL_JSON_VALUE))
                 .andExpect(status().isOk())
                 .andExpect(content().contentType(MediaTypes.HAL_JSON_VALUE))
-                // La colección de envíos ahora está dentro de "_embedded.envioList"
                 .andExpect(jsonPath("$._embedded.envioList", hasSize(2)))
                 .andExpect(jsonPath("$._embedded.envioList[0].idEnvio", is(envio1.getIdEnvio())))
                 .andExpect(jsonPath("$._embedded.envioList[0]._links.self.href", containsString("/api/v1/envios/" + envio1.getIdEnvio())))
                 .andExpect(jsonPath("$._embedded.envioList[1].idEnvio", is(envio2.getIdEnvio())))
                 .andExpect(jsonPath("$._embedded.envioList[1]._links.self.href", containsString("/api/v1/envios/" + envio2.getIdEnvio())))
-                // Los enlaces de la colección global permanecen igual
                 .andExpect(jsonPath("$._links.self.href", containsString("/api/v1/envios")))
                 .andExpect(jsonPath("$._links.crear-envio.href", containsString("/api/v1/envios")));
         verify(envioService, times(1)).listarEnvios();
@@ -192,7 +190,6 @@ class EnvioControllerTest {
                         .accept(MediaTypes.HAL_JSON_VALUE))
                 .andExpect(status().isOk())
                 .andExpect(content().contentType(MediaTypes.HAL_JSON_VALUE))
-                // Los campos de la entidad están en la raíz, los enlaces también
                 .andExpect(jsonPath("$.idEnvio", is(existingEnvioUpdated.getIdEnvio())))
                 .andExpect(jsonPath("$.estadoPedido", is(Estado.ENTREGADO.toString())))
                 .andExpect(jsonPath("$._links.self.href", containsString("/api/v1/envios/1")));
@@ -240,11 +237,8 @@ class EnvioControllerTest {
                         .accept(MediaTypes.HAL_JSON_VALUE))
                 .andExpect(status().isOk())
                 .andExpect(content().contentType(MediaTypes.HAL_JSON_VALUE))
-                // Los campos de la entidad están en la raíz, incluyendo 'productos'
                 .andExpect(jsonPath("$.idEnvio", is(envioAfterAddition.getIdEnvio())))
                 .andExpect(jsonPath("$.productos", hasSize(3)))
-                // Para verificar un producto específico en la lista (sin DTOs, se accede directamente a sus campos)
-                // Usamos `hasItems` para verificar la presencia de los nombres en la lista de productos
                 .andExpect(jsonPath("$.productos[*].nombre", hasItems(p1.getNombre(), p2.getNombre(), p3.getNombre())))
                 .andExpect(jsonPath("$._links.self.href", containsString("/api/v1/envios/1")));
         verify(envioService, times(1)).agregarProducto(1, p3.getIdProducto());
@@ -266,11 +260,9 @@ class EnvioControllerTest {
                         .content(objectMapper.writeValueAsString(Estado.ENTREGADO)))
                 .andExpect(status().isOk())
                 .andExpect(content().contentType(MediaTypes.HAL_JSON_VALUE))
-                // Los campos de la entidad están en la raíz
                 .andExpect(jsonPath("$.idEnvio", is(updatedEnvio.getIdEnvio())))
                 .andExpect(jsonPath("$.estadoPedido", is(Estado.ENTREGADO.toString())))
                 .andExpect(jsonPath("$._links.self.href", containsString("/api/v1/envios/1")))
-                // Enlaces que ya no deberían aparecer si el estado es ENTREGADO
                 .andExpect(jsonPath("$._links.marcar-entregado").doesNotExist())
                 .andExpect(jsonPath("$._links.cancelar").doesNotExist())
                 .andExpect(jsonPath("$._links.agregar-producto").doesNotExist())
@@ -295,10 +287,8 @@ class EnvioControllerTest {
                         .accept(MediaTypes.HAL_JSON_VALUE))
                 .andExpect(status().isOk())
                 .andExpect(content().contentType(MediaTypes.HAL_JSON_VALUE))
-                // Los campos de la entidad están en la raíz
                 .andExpect(jsonPath("$.idEnvio", is(envioAfterRemoval.getIdEnvio())))
                 .andExpect(jsonPath("$.productos", hasSize(1)))
-                // Acceso directo a los campos del producto restante
                 .andExpect(jsonPath("$.productos[0].idProducto", is(p2.getIdProducto())))
                 .andExpect(jsonPath("$._links.self.href", containsString("/api/v1/envios/1")));
         verify(envioService, times(1)).eliminarProducto(1, p1.getIdProducto());
@@ -313,7 +303,6 @@ class EnvioControllerTest {
                         .accept(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
                 .andExpect(content().contentType(MediaType.APPLICATION_JSON))
-                // Este endpoint no devuelve HATEOAS, así que el array de productos está en la raíz
                 .andExpect(jsonPath("$", hasSize(2)))
                 .andExpect(jsonPath("$[0].idProducto", is(p1.getIdProducto())))
                 .andExpect(jsonPath("$[1].idProducto", is(p2.getIdProducto())));

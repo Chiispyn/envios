@@ -10,6 +10,7 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 
@@ -27,6 +28,7 @@ class ProductoServiceTest {
 
     private Producto producto1;
     private Producto producto2;
+    private Producto producto3; 
 
     @BeforeEach
     void setUp() {
@@ -39,6 +41,11 @@ class ProductoServiceTest {
         producto2.setIdProducto(2);
         producto2.setNombre("Juego de cubiertos de bambú");
         producto2.setPrecio(4500.00);
+
+        producto3 = new Producto();
+        producto3.setIdProducto(3);
+        producto3.setNombre("Tenedor de madera de acacia");
+        producto3.setPrecio(2000.00);
     }
 
     @Test
@@ -128,20 +135,78 @@ class ProductoServiceTest {
 
     @Test
     void eliminarProducto_debeEliminarProductoCuandoExiste() {
-        when(productoRepository.existsById(1)).thenReturn(true); 
-        doNothing().when(productoRepository).deleteById(1); 
-        boolean result = productoService.eliminarProducto(1); 
-        assertTrue(result); 
-        verify(productoRepository, times(1)).existsById(1); 
-        verify(productoRepository, times(1)).deleteById(1); 
+        when(productoRepository.existsById(1)).thenReturn(true);
+        doNothing().when(productoRepository).deleteById(1);
+        boolean result = productoService.eliminarProducto(1);
+        assertTrue(result);
+        verify(productoRepository, times(1)).existsById(1);
+        verify(productoRepository, times(1)).deleteById(1);
     }
 
     @Test
     void eliminarProducto_debeRetornarFalsoCuandoNoExiste() {
-        when(productoRepository.existsById(99)).thenReturn(false); 
+        when(productoRepository.existsById(99)).thenReturn(false);
         boolean result = productoService.eliminarProducto(99);
-        assertFalse(result); 
-        verify(productoRepository, times(1)).existsById(99); 
-        verify(productoRepository, never()).deleteById(anyInt()); 
+        assertFalse(result);
+        verify(productoRepository, times(1)).existsById(99);
+        verify(productoRepository, never()).deleteById(anyInt());
+    }
+
+    @Test
+    void buscarProductosPorNombre_debeRetornarTodosLosProductosIndependienteDelNombre() {
+        List<Producto> todosLosProductos = Arrays.asList(producto1, producto2, producto3);
+        when(productoRepository.findAll()).thenReturn(todosLosProductos);
+        List<Producto> productosEncontrados = productoService.buscarProductosPorNombre("inexistente");
+        assertNotNull(productosEncontrados);
+        assertEquals(todosLosProductos.size(), productosEncontrados.size());
+        assertTrue(productosEncontrados.containsAll(todosLosProductos));
+        verify(productoRepository, times(1)).findAll(); 
+    }
+
+    @Test
+    void buscarProductosPorNombre_debeRetornarTodosLosProductosConNombreExacto() {
+        List<Producto> todosLosProductos = Arrays.asList(producto1, producto2, producto3);
+        when(productoRepository.findAll()).thenReturn(todosLosProductos);
+        List<Producto> productosEncontrados = productoService.buscarProductosPorNombre("Plato de madera de lenga");
+        assertNotNull(productosEncontrados);
+        assertEquals(todosLosProductos.size(), productosEncontrados.size());
+        assertTrue(productosEncontrados.containsAll(todosLosProductos));
+        verify(productoRepository, times(1)).findAll(); 
+    }
+
+    @Test
+    void buscarProductosPorNombre_debeRetornarTodosLosProductosConNombreParcial() {
+        List<Producto> todosLosProductos = Arrays.asList(producto1, producto2, producto3);
+        when(productoRepository.findAll()).thenReturn(todosLosProductos);
+        List<Producto> productosEncontrados = productoService.buscarProductosPorNombre("madera");
+        assertNotNull(productosEncontrados);
+        assertEquals(todosLosProductos.size(), productosEncontrados.size());
+        assertTrue(productosEncontrados.containsAll(todosLosProductos));
+        verify(productoRepository, times(1)).findAll(); 
+    }
+
+    @Test
+    void buscarProductosPorNombre_debeRetornarTodosLosProductosCuandoElRepositorioEstaVacio() {
+        when(productoRepository.findAll()).thenReturn(Collections.emptyList());
+        List<Producto> productosEncontrados = productoService.buscarProductosPorNombre("cualquierCosa");
+        assertNotNull(productosEncontrados);
+        assertTrue(productosEncontrados.isEmpty());
+        assertEquals(0, productosEncontrados.size());
+        verify(productoRepository, times(1)).findAll();
+    }
+
+    @Test
+    void buscarProductosPorNombre_debeRetornarTodosLosProductosSiElNombreEsVacioONulo() {
+        List<Producto> todosLosProductos = Arrays.asList(producto1, producto2, producto3);
+        when(productoRepository.findAll()).thenReturn(todosLosProductos);
+        List<Producto> productosPorNombreVacio = productoService.buscarProductosPorNombre("");
+        assertNotNull(productosPorNombreVacio);
+        assertEquals(3, productosPorNombreVacio.size());
+        assertTrue(productosPorNombreVacio.containsAll(todosLosProductos));
+        List<Producto> productosPorNombreNulo = productoService.buscarProductosPorNombre(null);
+        assertNotNull(productosPorNombreNulo);
+        assertEquals(3, productosPorNombreNulo.size());
+        assertTrue(productosPorNombreNulo.containsAll(todosLosProductos));
+        verify(productoRepository, times(2)).findAll();
     }
 }

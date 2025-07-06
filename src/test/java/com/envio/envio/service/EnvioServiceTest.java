@@ -361,23 +361,19 @@ class EnvioServiceTest {
     @Test
 void actualizarEnvio_debeActualizarSoloCamposNoNulos() {
     Envio updatePartial = new Envio();
-    updatePartial.setIdCliente(777); // solo actualizamos este campo
-
+    updatePartial.setIdCliente(777); 
     Envio original = new Envio();
     original.setIdEnvio(10);
     original.setEstadoPedido(Estado.PENDIENTE);
     original.setIdCliente(101);
     original.setFechaEnvio(new Date());
     original.setProductos(new HashSet<>(Arrays.asList(p1, p2)));
-
     when(envioRepository.findById(10)).thenReturn(Optional.of(original));
     when(envioRepository.save(any(Envio.class))).thenReturn(original);
-
     Envio result = envioService.actualizarEnvio(10, updatePartial);
-
     assertNotNull(result);
-    assertEquals(777, result.getIdCliente()); // actualizado
-    assertEquals(Estado.PENDIENTE, result.getEstadoPedido()); // no cambia
+    assertEquals(777, result.getIdCliente());
+    assertEquals(Estado.PENDIENTE, result.getEstadoPedido()); 
     verify(envioRepository).save(original);
 }
 @Test
@@ -386,19 +382,60 @@ void guardarEnvio_sinProductosDebeGuardarYNotificar() {
     envio.setIdCliente(456);
     envio.setEstadoPedido(Estado.PENDIENTE);
     envio.setFechaEnvio(new Date());
-    envio.setProductos(null); // <- importante
-
+    envio.setProductos(null); 
     Envio saved = new Envio();
     saved.setIdEnvio(5);
     saved.setProductos(null);
-
     when(envioRepository.save(envio)).thenReturn(saved);
     when(chilexpressApiService.notificarNuevoEnvio(anyInt())).thenReturn(true);
-
     Envio result = envioService.guardarEnvio(envio);
     assertNotNull(result);
     verify(chilexpressApiService).notificarNuevoEnvio(5);
 }
-
+@Test
+    void actualizarEnvio_debeActualizarSinCambiarEstadoSiEstadoEnInputEsNulo() {
+        Envio updatePartial = new Envio();
+        updatePartial.setIdCliente(500); 
+        updatePartial.setFechaEnvio(new Date()); 
+        Envio existingEnvioCloned = new Envio();
+        existingEnvioCloned.setIdEnvio(envio1.getIdEnvio());
+        existingEnvioCloned.setEstadoPedido(envio1.getEstadoPedido());
+        existingEnvioCloned.setIdCliente(envio1.getIdCliente());
+        existingEnvioCloned.setFechaEnvio(envio1.getFechaEnvio());
+        existingEnvioCloned.setProductos(new HashSet<>(envio1.getProductos()));
+        when(envioRepository.findById(envio1.getIdEnvio())).thenReturn(Optional.of(existingEnvioCloned));
+        when(envioRepository.save(any(Envio.class))).thenReturn(existingEnvioCloned); 
+        Envio result = envioService.actualizarEnvio(envio1.getIdEnvio(), updatePartial);
+        assertNotNull(result);
+        assertEquals(Estado.PENDIENTE, result.getEstadoPedido());
+        assertEquals(500, result.getIdCliente());
+        verify(envioRepository, times(1)).findById(envio1.getIdEnvio());
+        verify(envioRepository, times(1)).save(existingEnvioCloned);
+        verify(chilexpressApiService, never()).actualizarEstadoEnvio(anyInt(), anyString());
+    }
+    @Test
+    void actualizarEnvio_debeActualizarSinModificarProductosSiProductosEnInputEsNulo() {
+        Envio updateInfo = new Envio();
+        updateInfo.setProductos(null); 
+        updateInfo.setIdCliente(888); 
+        Envio existingEnvioCloned = new Envio();
+        existingEnvioCloned.setIdEnvio(envio1.getIdEnvio());
+        existingEnvioCloned.setEstadoPedido(envio1.getEstadoPedido());
+        existingEnvioCloned.setIdCliente(envio1.getIdCliente());
+        existingEnvioCloned.setFechaEnvio(envio1.getFechaEnvio());
+        Set<Producto> originalProducts = new HashSet<>(Arrays.asList(p1));
+        existingEnvioCloned.setProductos(originalProducts);
+        when(envioRepository.findById(envio1.getIdEnvio())).thenReturn(Optional.of(existingEnvioCloned));
+        when(envioRepository.save(any(Envio.class))).thenReturn(existingEnvioCloned); 
+        Envio result = envioService.actualizarEnvio(envio1.getIdEnvio(), updateInfo);
+        assertNotNull(result);
+        assertEquals(888, result.getIdCliente()); 
+        assertNotNull(result.getProductos());
+        assertEquals(1, result.getProductos().size());
+        assertTrue(result.getProductos().contains(p1));
+        verify(envioRepository, times(1)).findById(envio1.getIdEnvio());
+        verify(envioRepository, times(1)).save(existingEnvioCloned);
+        verify(chilexpressApiService, never()).actualizarEstadoEnvio(anyInt(), anyString());
+    }
 
 }
