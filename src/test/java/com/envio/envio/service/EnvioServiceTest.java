@@ -287,4 +287,118 @@ class EnvioServiceTest {
         assertTrue(productos.isEmpty());
         verify(envioRepository, times(1)).findById(99);
     }
+    @Test
+    void actualizarEnvio_debeRetornarNullSiNoExiste() {
+        when(envioRepository.findById(99)).thenReturn(Optional.empty());
+        Envio updated = new Envio();
+        Envio result = envioService.actualizarEnvio(99, updated);
+        assertNull(result);
+        verify(envioRepository, times(1)).findById(99);
+    }
+    @Test
+    void eliminarEnvio_noHaceNadaSiNoExiste() {
+        when(envioRepository.findById(99)).thenReturn(Optional.empty());
+        envioService.eliminarEnvio(99);
+        verify(envioRepository, times(1)).findById(99);
+        verify(chilexpressApiService, never()).cancelarEnvio(anyInt());
+        verify(envioRepository, times(1)).deleteById(99); // igual se llama
+    }
+
+
+    @Test
+    void agregarProducto_debeRetornarNullSiEnvioNoExiste() {
+        when(envioRepository.findById(99)).thenReturn(Optional.empty());
+        when(productoRepository.findById(p1.getIdProducto())).thenReturn(Optional.of(p1));
+        Envio result = envioService.agregarProducto(99, p1.getIdProducto());
+        assertNull(result);
+    }
+
+    @Test
+    void agregarProducto_debeRetornarNullSiProductoNoExiste() {
+        when(envioRepository.findById(1)).thenReturn(Optional.of(envio1));
+        when(productoRepository.findById(99)).thenReturn(Optional.empty());
+        Envio result = envioService.agregarProducto(1, 99);
+        assertNull(result);
+    }
+
+    @Test
+    void eliminarProducto_debeRetornarNullSiEnvioNoExiste() {
+        when(envioRepository.findById(99)).thenReturn(Optional.empty());
+        when(productoRepository.findById(p1.getIdProducto())).thenReturn(Optional.of(p1));
+        Envio result = envioService.eliminarProducto(99, p1.getIdProducto());
+        assertNull(result);
+    }
+
+    @Test
+    void eliminarProducto_debeRetornarNullSiProductoNoExiste() {
+        when(envioRepository.findById(1)).thenReturn(Optional.of(envio1));
+        when(productoRepository.findById(99)).thenReturn(Optional.empty());
+        Envio result = envioService.eliminarProducto(1, 99);
+        assertNull(result);
+    }
+
+    @Test
+    void cambiarEstado_noDebeNotificarSiEstadoNoCambia() {
+        envio1.setEstadoPedido(Estado.PENDIENTE);
+        when(envioRepository.findById(1)).thenReturn(Optional.of(envio1));
+        when(envioRepository.save(envio1)).thenReturn(envio1);
+
+        Envio result = envioService.cambiarEstado(1, Estado.PENDIENTE);
+
+        assertNotNull(result);
+        assertEquals(Estado.PENDIENTE, result.getEstadoPedido());
+        verify(envioRepository, times(1)).save(envio1);
+        verify(chilexpressApiService, never()).actualizarEstadoEnvio(anyInt(), anyString());
+    }
+    @Test
+    void cambiarEstado_debeRetornarNullSiEnvioNoExiste() {
+        when(envioRepository.findById(99)).thenReturn(Optional.empty());
+        Envio result = envioService.cambiarEstado(99, Estado.ENTREGADO);
+        assertNull(result);
+        verify(envioRepository, times(1)).findById(99);
+    }
+
+    @Test
+void actualizarEnvio_debeActualizarSoloCamposNoNulos() {
+    Envio updatePartial = new Envio();
+    updatePartial.setIdCliente(777); // solo actualizamos este campo
+
+    Envio original = new Envio();
+    original.setIdEnvio(10);
+    original.setEstadoPedido(Estado.PENDIENTE);
+    original.setIdCliente(101);
+    original.setFechaEnvio(new Date());
+    original.setProductos(new HashSet<>(Arrays.asList(p1, p2)));
+
+    when(envioRepository.findById(10)).thenReturn(Optional.of(original));
+    when(envioRepository.save(any(Envio.class))).thenReturn(original);
+
+    Envio result = envioService.actualizarEnvio(10, updatePartial);
+
+    assertNotNull(result);
+    assertEquals(777, result.getIdCliente()); // actualizado
+    assertEquals(Estado.PENDIENTE, result.getEstadoPedido()); // no cambia
+    verify(envioRepository).save(original);
+}
+@Test
+void guardarEnvio_sinProductosDebeGuardarYNotificar() {
+    Envio envio = new Envio();
+    envio.setIdCliente(456);
+    envio.setEstadoPedido(Estado.PENDIENTE);
+    envio.setFechaEnvio(new Date());
+    envio.setProductos(null); // <- importante
+
+    Envio saved = new Envio();
+    saved.setIdEnvio(5);
+    saved.setProductos(null);
+
+    when(envioRepository.save(envio)).thenReturn(saved);
+    when(chilexpressApiService.notificarNuevoEnvio(anyInt())).thenReturn(true);
+
+    Envio result = envioService.guardarEnvio(envio);
+    assertNotNull(result);
+    verify(chilexpressApiService).notificarNuevoEnvio(5);
+}
+
+
 }
